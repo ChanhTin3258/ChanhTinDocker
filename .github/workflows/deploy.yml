@@ -22,8 +22,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.CHANHTIN}}
-          password: ${{ secrets.PASSWORD}}
+          username: chanhtin3258
+          password: ${{ secrets.PASSWORD }}
 
       # 4. Build và Push Image lên Docker Hub
       - name: Build and push Docker image
@@ -34,4 +34,4 @@ jobs:
           push: true
           # Đặt tag cho image.
           # Thay "my-app" bằng tên repotheository trên Docker Hub của bạn (ví dụ: node-hello)
-          tags: ${{ secrets.CHANHTIN }}/node-hello:latest
+          tags: chanhtin3258/node-hello:latest
