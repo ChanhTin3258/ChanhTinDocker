@@ -1,0 +1,37 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout mã nguồn từ GitHub
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Thiết lập Docker Buildx (công cụ hỗ trợ build image mạnh mẽ hơn của Docker)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Đăng nhập vào Docker Hub sử dụng GitHub Secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. Build và Push Image lên Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          # Đặt tag cho image.
+          # Thay "my-app" bằng tên repository trên Docker Hub của bạn (ví dụ: node-hello)
+          tags: ${{ secrets.DOCKER_USERNAME }}/my-app:latest
