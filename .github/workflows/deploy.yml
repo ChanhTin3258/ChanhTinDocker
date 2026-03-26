@@ -34,4 +34,4 @@ jobs:
           push: true
           # Đặt tag cho image.
           # Thay "my-app" bằng tên repository trên Docker Hub của bạn (ví dụ: node-hello)
-          tags: ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/node-hello:latest
