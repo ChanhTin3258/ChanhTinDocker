@@ -3,35 +3,61 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - main
+      - main  # Quy trình sẽ chạy mỗi khi bạn push code lên nhánh main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout mã nguồn từ GitHub
+      # 1. Checkout mã nguồn từ GitHub về máy ảo
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Thiết lập Docker Buildx (công cụ hỗ trợ build image mạnh mẽ hơn của Docker)
+      # 2. Thiết lập Docker Buildx (hỗ trợ build image tối ưu)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. Đăng nhập vào Docker Hub sử dụng GitHub Secrets
+      # 3. Đăng nhập vào Docker Hub (Sử dụng Secret để bảo mật)
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: chanhtin3258
-          password: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.DOCKER_PASSWORD }} # Bạn cần tạo Secret tên DOCKER_PASSWORD trên GitHub
 
-      # 4. Build và Push Image lên Docker Hub
+      # 4. Build code thành Image và đẩy lên Docker Hub
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
-          # Đặt tag cho image.
-          # Thay "my-app" bằng tên repotheository trên Docker Hub của bạn (ví dụ: node-hello)
-          tags: chanhtin3258/node-hello:latest
+          tags: chanhtin3258/node-hello:latest # Tên image đồng nhất
+
+      # 5. Gửi tín hiệu Webhook để Server của trường tự động Deploy
+      - name: Triển khai lên DevOps Classroom
+        run: |
+          REPO="chanhtin3258/node-hello"
+          CONTAINER_PORT=80
+          
+          # Gửi lệnh POST đến Webhook URL
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=latest&slot=3&container_port=$CONTAINER_PORT&strict_container_port=0")
+          
+          # Tách lấy nội dung JSON và mã trạng thái HTTP
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          CODE=$(echo "$RESPONSE" | tail -n1)
+          
+          echo "Webhook HTTP Status: $CODE"
+          
+          if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
+            echo "Deploy thất bại. Kiểm tra log chi tiết bên dưới:"
+            echo "::group::Chi tiết lỗi từ Server (JSON)"
+            echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+            echo "::endgroup::"
+            exit 1
+          fi
+          
+          echo "Deploy thành công rực rỡ!"
+          echo "::group::Phản hồi từ Server"
+          echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+          echo "::endgroup::"
