@@ -23,7 +23,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: chanhtin3258
-          password: ${{ secrets.DOCKER_PASSWORD }} # Bạn cần tạo Secret tên DOCKER_PASSWORD trên GitHub
+          password: ${{ secrets.PASSWORD }} # Bạn cần tạo Secret tên DOCKER_PASSWORD trên GitHub
 
       # 4. Build code thành Image và đẩy lên Docker Hub
       - name: Build and push Docker image
